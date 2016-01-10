@@ -163,12 +163,19 @@ class BaseSupervisedModel(object):
 
     def __getstate__(self):
 
+        self.train_X.set_value(
+                np.array(0, dtype=self.train_X.dtype, ndmin=self.train_X.ndim)
+                )
+        self.train_y.set_value(
+                np.array(0, dtype=self.train_y.dtype, ndmin=self.train_y.ndim)
+                )
+        self.valid_X.set_value(
+                np.array(0, dtype=self.valid_X.dtype, ndmin=self.valid_X.ndim)
+                )
+        self.valid_y.set_value(
+                np.array(0, dtype=self.valid_y.dtype, ndmin=self.valid_y.ndim)
+                )
         state = dict(self.__dict__)
-        state.pop('train_X', None)
-        state.pop('train_y', None)
-        state.pop('valid_X', None)
-        state.pop('valid_y', None)
-
         return state
 
     def __setstate__(self, d):

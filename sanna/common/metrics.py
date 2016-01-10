@@ -29,10 +29,12 @@ def mean_kappa_loss(Y, y, y_distro=None, power=2, class_weights=None,
     num = T.sum(Y * w_num, axis = -1)
     den = T.dot(T.dot(Y, w), actual_distro).ravel()
 
-    m = T.sum(num / den)
+    m = num / den
     if class_weights is None:
         return T.mean(m)
     else:
+        class_weights = np.asarray(class_weights)
+        class_weights = T.constant(class_weights)
         return T.mean(class_weights[y] * m)
 
 
