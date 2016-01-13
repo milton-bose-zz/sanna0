@@ -6,7 +6,7 @@ from theano import tensor as T
 
 from .functions import *
 
-def mean_weighted_loss(Y, y, power=1, class_weights=None):
+def mean_weighted_loss(Y, y, power=2, class_weights=None):
 
     ycols = Y.shape[-1]
     a = T.arange(ycols)[None, :]
@@ -19,7 +19,7 @@ def mean_weighted_loss(Y, y, power=1, class_weights=None):
     if class_weights is None:
         return T.mean(m)
     else:
-        return _class_weighted_loss(m, class_weightes)
+        return _class_weighted_loss(m, class_weights, y)
 
 
 def mean_kappa_loss(Y, y, y_distro=None, power=2, class_weights=None,
@@ -54,8 +54,7 @@ def mean_kappa_loss(Y, y, y_distro=None, power=2, class_weights=None,
     if class_weights is None:
         return T.mean(m)
     else:
-        return _class_weighted_loss(m, class_weightes)
-
+        return _class_weighted_loss(m, class_weights, y)
 
 def MSE(Y, y):
 
@@ -73,9 +72,7 @@ def mean_neg_log_proba(Y, y, class_weights=None):
     if class_weights is None:
         return T.mean(m)
     else:
-        class_weights = np.asarray(class_weights)
-        class_weights = T.constant(class_weights)
-        return T.mean(class_weights[y] * m)
+        return _class_weighted_loss(m, class_weights, y)
 
 
 def mean_zero_one_loss(Y, y):
@@ -98,7 +95,7 @@ def adaboost_loss(Y, y, alpha=1):
     return T.mean(T.exp(- alpha * margin(Y, y)))
 
 
-def _class_weighted_loss(elementwise_loss, class_weights):
+def _class_weighted_loss(elementwise_loss, class_weights, y):
     class_weights = np.asarray(class_weights)
     class_weights = T.constant(class_weights)
     return T.mean(class_weights[y] * elementwise_loss)
