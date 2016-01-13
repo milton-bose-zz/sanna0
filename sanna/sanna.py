@@ -20,30 +20,30 @@ bar = '#' * 80
 config_bar = '#' * 33 + ' CONFIGURATION ' + '#' * 33
 
 
-def show_header(config, config_text=None):
+def show_header(model_name, config_text=None):
 
     if config_text is None:
-        logging.info('running model: {}'.format(config['model_name']))
+        logging.info('running model: {}'.format(model_name))
     else:
         logging.info(
                 'running model: {0}\n{1}\n{2}\n{3}'.format(
-                    config['model_name'], config_bar, config_text.strip(),
+                    model_name, config_bar, config_text.strip(),
                     bar
                     )
                 )
 
 
 def run():
-
     sys.path.append(os.getcwd())
+
     parser = argparse.ArgumentParser(
-            description="Run simple feed-forward neural networks."
+            description="Train a simple feed-forward neural network."
             )
 
     parser.add_argument(
-            "config", help="YAML file with the model configuration."
+            "-c", "--config", type=str, default=None,
+            help="YAML file with the model configuration."
             )
-
     parser.add_argument(
             "-m", "--model", type=str, default=None,
             help="relative path to pre-trained model")
@@ -51,16 +51,32 @@ def run():
             "-o", "--optimize", action='store_true',
             help="bool",
             )
+    parser.add_argument(
+            '-l', '--log', type=str, default=None,
+            help='path to log file'
+            )
 
     args = parser.parse_args()
-    config_text = hlp.read_file(args.config)
-    config = yaml.load(config_text)
+    log_file = args.log
+    if args.config is not None:
+        config_text = hlp.read_file(args.config)
+        config = yaml.load(config_text)
+        log_file = config['log_filename']
+    else:
+        if args.model is None:
+            raise SyntaxError(
+                'Either model config or a pickled model must be given'
+                )
 
     optimize = args.optimize
     pickled_model = args.model
+    if pickled_model is not None:
+        model_name = pickled_model
+    else:
+        model_name = config['model_name']
 
-    hlp.setup_basic_logging(log_file=config['log_filename'])
-    show_header(config, config_text)
+    hlp.setup_basic_logging(log_file=log_file)
+    show_header(model_name, config_text)
 
     logging.info('loading datasets')
     data = hlp.load_datasets(config['datasets'])
@@ -74,7 +90,9 @@ def run():
 
     if optimize:
         logging.info('Optimizing the model parameters')
-        model.optimize_params(data['training'], **config['optimization_params'])
+        model.optimize_params(data['training'],
+                **config['optimization_params']
+                )
 
     eval_config = config['evaluation']
     confusion_mat = eval_config.get('confusion_matrix', False)

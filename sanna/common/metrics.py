@@ -6,7 +6,6 @@ from theano import tensor as T
 
 from .functions import *
 
-
 def mean_weighted_loss(Y, y, power=1, class_weights=None):
 
     ycols = Y.shape[-1]
@@ -20,9 +19,8 @@ def mean_weighted_loss(Y, y, power=1, class_weights=None):
     if class_weights is None:
         return T.mean(m)
     else:
-        class_weights = np.asarray(class_weights)
-        class_weights = T.constant(class_weights)
-        return T.mean(class_weights[y] * m)
+        return _class_weighted_loss(m, class_weightes)
+
 
 def mean_kappa_loss(Y, y, y_distro=None, power=2, class_weights=None,
                     n_classes=None):
@@ -45,16 +43,18 @@ def mean_kappa_loss(Y, y, y_distro=None, power=2, class_weights=None,
         w_num = w_num ** power
 
     num = T.sum(Y * w_num, axis = -1)
-    den = T.dot(T.dot(Y, w), actual_distro).ravel()
+    den = T.sum(
+            T.sum(
+                Y.dimshuffle(0, 1, 'x') * actual_distro.dimshuffle('x', 'x', 0)\
+                * w, axis=-1),
+            axis=-1
+            )
 
     m = num / den
     if class_weights is None:
         return T.mean(m)
     else:
-        class_weights = np.asarray(class_weights)
-        class_weights /= class_weights.sum()
-        class_weights = T.constant(class_weights)
-        return T.mean(class_weights[y] * m)
+        return _class_weighted_loss(m, class_weightes)
 
 
 def MSE(Y, y):
@@ -67,7 +67,7 @@ def MAE(Y, y):
     return T.mean(AE(Y, y))
 
 
-def mean_neg_log_p(Y, y, class_weights=None):
+def mean_neg_log_proba(Y, y, class_weights=None):
 
     m = negative_log_proba(Y, y)
     if class_weights is None:
@@ -96,6 +96,12 @@ def mean_margin_loss(Y, y):
 def adaboost_loss(Y, y, alpha=1):
 
     return T.mean(T.exp(- alpha * margin(Y, y)))
+
+
+def _class_weighted_loss(elementwise_loss, class_weights):
+    class_weights = np.asarray(class_weights)
+    class_weights = T.constant(class_weights)
+    return T.mean(class_weights[y] * elementwise_loss)
 
 
 """
