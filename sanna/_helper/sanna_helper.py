@@ -15,6 +15,9 @@ def construct_eval_metrics(func_descr):
 def construct_function(func_descr, module=metrics):
     if func_descr is None:
         return func_descr
+    elif hasattr(func_descr['name'], '__call__'):
+        return func_descr['name']
+
     func = getattr(module, func_descr.pop('name'))
 
     f = lambda *Yy: func(*Yy, **func_descr)

@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function, division
 
+import os
+import sys
 import logging
 import argparse
 import pickle
@@ -32,22 +34,86 @@ def show_header(config, config_text=None):
 
 
 def run():
+
+    sys.path.append(os.getcwd())
     parser = argparse.ArgumentParser(
             description="Run simple feed-forward neural networks."
             )
+
     parser.add_argument(
             "config", help="YAML file with the model configuration."
             )
-    args = parser.parse_args()
 
+    parser.add_argument(
+            "-m", "--model", type=str, default=None,
+            help="relative path to pre-trained model")
+    parser.add_argument(
+            "-o", "--optimize", action='store_true',
+            help="bool",
+            )
+
+    args = parser.parse_args()
     config_text = hlp.read_file(args.config)
     config = yaml.load(config_text)
+
+    optimize = args.optimize
+    pickled_model = args.model
 
     hlp.setup_basic_logging(log_file=config['log_filename'])
     show_header(config, config_text)
 
     logging.info('loading datasets')
     data = hlp.load_datasets(config['datasets'])
+
+    if pickled_model is None:
+        model = compile_model(config, data)
+        optimize = True
+    else:
+        with open(pickled_model, 'rb') as f:
+            model = pickle.load(f)
+
+    if optimize:
+        logging.info('Optimizing the model parameters')
+        model.optimize_params(data['training'], **config['optimization_params'])
+
+    eval_config = config['evaluation']
+    confusion_mat = eval_config.get('confusion_matrix', False)
+    eval_metrics = eval_config.get('metrics', [])
+
+    msg = "\n\nPerformance Evaluation\n======================\n\n"
+
+    if 'eval' in data.keys():
+        eval_, cm, cms = evaluation(
+                data['eval'], model, eval_metrics, confusion_mat
+                )
+        msg += "Test Data (%i instances)\n\n" % len(data['eval'][1])
+        for k, v in eval_.items():
+            msg += '{0}: {1}\n'.format(k, v)
+        msg += '\n'
+        if cm is not None:
+            msg += 'Confusion Matrix: (actuals along row)\n'
+            msg += '-------------------------------------\n'
+            msg += hlp.pandas_repr(cm, display__width=200, precision=4)
+            msg += '\n\n'
+            msg += 'Confusion Matrix Normalized Along Row:\n'
+            msg += '--------------------------------------\n'
+            msg += hlp.pandas_repr(cms, display__width=200, precision=4)
+            msg += '\n\n'
+        else:
+            msg += 'No Evaluation data provided\n\n'
+
+    logging.info(msg)
+
+    if config['pickle']:
+        logging.info(
+                'pickling the trained model to file: %s.pkl' % (
+                    config['model_name']
+                    )
+                )
+        with open(config['model_name'] + '.pkl', 'wb') as f:
+            pickle.dump(model, f, protocol=pickle.HIGHEST_PROTOCOL)
+
+def compile_model(config, data):
 
     logging.info('setting up the random number generators')
     numpy_rng, theano_rng = hlp.initialize_rngs(
@@ -90,45 +156,7 @@ def run():
     model_params.update(gd_params)
     model = ModelClass(arch, **model_params)
 
-    logging.info('Optimizing the model parameters')
-    model.optimize_params(data['training'], **config['optimization_params'])
-
-    eval_config = config['evaluation']
-    confusion_mat = eval_config.get('confusion_matrix', False)
-    eval_metrics = eval_config.get('metrics', [])
-
-    msg = "\n\nPerformance Evaluation\n======================\n\n"
-
-    if 'eval' in data.keys():
-        eval_, cm, cms = evaluation(
-                data['eval'], model, eval_metrics, confusion_mat
-                )
-        msg += "Test Data (%i instances)\n\n" % len(data['eval'][1])
-        for k, v in eval_.items():
-            msg += '{0}: {1}\n'.format(k, v)
-        msg += '\n'
-        if cm is not None:
-            msg += 'Confusion Matrix: (actuals along row)\n'
-            msg += '-------------------------------------\n'
-            msg += hlp.pandas_repr(cm, display__width=200, precision=4)
-            msg += '\n\n'
-            msg += 'Confusion Matrix Normalized Along Row:\n'
-            msg += '--------------------------------------\n'
-            msg += hlp.pandas_repr(cms, display__width=200, precision=4)
-            msg += '\n\n'
-        else:
-            msg += 'No Evaluation data provided\n\n'
-
-    logging.info(msg)
-
-    if config['pickle']:
-        logging.info(
-                'pickling the trained model to file: %s.' % (
-                    config['model_name']
-                    )
-                )
-        with open(config['model_name'] + '.pkl', 'wb') as f:
-            pickle.dump(model, f, protocol=pickle.HIGHEST_PROTOCOL)
+    return model
 
 
 def evaluation(data, model, eval_metrics=[], confusion=False,
