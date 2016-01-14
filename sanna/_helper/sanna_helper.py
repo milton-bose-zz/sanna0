@@ -39,15 +39,11 @@ def setup_basic_logging(log_file=None, level=logging.INFO,
 
 
 def load_datasets(filepath):
+
     with open(filepath, 'rb') as f:
         datasets = pickle.load(f)
 
-    if isinstance(datasets, list):
-        training_data, eval_data = datasets
-        return {'training': training_data, 'eval': eval_data}
-    else:
-        training_data = datasets
-        return {'training': training_data}
+    return datasets
 
 
 def initialize_rngs(numpy_rng_seed=None, theano_rng_seed=None):

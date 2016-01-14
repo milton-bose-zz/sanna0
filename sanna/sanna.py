@@ -90,7 +90,7 @@ def run():
 
     if optimize:
         logging.info('Optimizing the model parameters')
-        model.optimize_params(data['training'],
+        model.optimize_params(data['train'],
                 **config['optimization_params']
                 )
 
@@ -140,15 +140,15 @@ def compile_model(config, data):
 
     logging.info('Constructing the architecture')
     architecture = config['model']['architecture']
-    input_type = hlp.get_tensor_type(data['training'][0])
+    input_type = hlp.get_tensor_type(data['train'][0])
     X = getattr(T, input_type)('X', dtype=theano.config.floatX)
     arch = FeedForwardNetwork(
             X, architecture, numpy_rng=numpy_rng, theano_rng=theano_rng
             )
 
     logging.info('Compiling the model')
-    output_type = hlp.get_tensor_type(data['training'][1])
-    output_dtype = str(data['training'][1].dtype)
+    output_type = hlp.get_tensor_type(data['train'][1])
+    output_dtype = str(data['train'][1].dtype)
     ModelClass = getattr(models, config['model']['class'])
     cost_func = hlp.construct_function(config['model']['cost_function'])
     confidence_func = hlp.construct_function(
