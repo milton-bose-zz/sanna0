@@ -9,7 +9,7 @@ from .functions import *
 def mean_weighted_loss(Y, y, power=2, class_weights=None):
 
     ycols = Y.shape[-1]
-    a = T.arange(ycols)[None, :]
+    a = T.arange(ycols).dimshuffle('x', 0)
     w = a - y.dimshuffle(0, 'x')
     if power == 1:
         w = abs(w)
