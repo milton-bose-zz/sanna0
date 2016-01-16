@@ -1,34 +1,10 @@
 import logging
-import pickle
 # import inspect
 
 from ..common.random import numpy_rng_instance
 from ..common.random import theano_rng_instance
 from ..common import metrics
 from ..common import eval_metrics
-
-
-def construct_eval_metrics(func_descr):
-    return construct_function(func_descr, module=eval_metrics)
-
-
-def construct_function(func_descr, module=metrics):
-    if func_descr is None:
-        return func_descr
-    elif hasattr(func_descr['name'], '__call__'):
-        return func_descr['name']
-
-    func = getattr(module, func_descr.pop('name'))
-
-    f = lambda *Yy: func(*Yy, **func_descr)
-
-    return f
-
-
-def read_file(filepath, mode='r'):
-    with open(filepath, mode) as f:
-        txt = f.read()
-    return txt
 
 
 def setup_basic_logging(log_file=None, level=logging.INFO,
@@ -38,13 +14,21 @@ def setup_basic_logging(log_file=None, level=logging.INFO,
             )
 
 
-def load_datasets(filepath):
+def construct_eval_metrics(func_descr):
+    return construct_function(func_descr, module=eval_metrics)
 
-    with open(filepath, 'rb') as f:
-        datasets = pickle.load(f)
 
-    return datasets
+def construct_function(func_descr, module=metrics):
+    if func_descr is None:
+        return func_descr
+    elif hasattr(func_descr, '__call__'):
+        return func_descr
 
+    func = getattr(module, func_descr.pop('name'))
+
+    f = lambda *Yy: func(*Yy, **func_descr)
+
+    return f
 
 def initialize_rngs(numpy_rng_seed=None, theano_rng_seed=None):
     numpy_rng = numpy_rng_instance(numpy_rng_seed)
