@@ -24,7 +24,6 @@ def kappa(prediction, actual, n_classes=None, weight_matrix=None):
     else:
         w = weight_matrix
 
-    print(n_classes)
 
     cm = confusion_matrix(prediction, actual, n_classes=n_classes)
 
