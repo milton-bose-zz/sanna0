@@ -7,6 +7,8 @@ from ..common.random import theano_rng_instance
 from ..common import metrics
 from ..common import eval_metrics
 from ..common.eval_metrics import confusion_matrix
+from ..common.misc.viz import trace
+from .loaders import read_file
 
 def evaluation(data, model, eval_metrics=[], confusion=False,
                confusion_kwrgs={}):
@@ -26,6 +28,14 @@ def evaluation(data, model, eval_metrics=[], confusion=False,
         cm = None
         cms = None
     return {'eval_metrics':eval_, 'cm':cm, 'cms':cms}
+
+
+def visualize(model_pickle, i=1, figsize=(12,6)):
+
+    model = read_file(model_pickle, 'pkl')
+    fig = trace(model, i=i, figsize=figsize)
+    fig.suptitle(model_pickle[:-4])
+    return fig
 
 
 def setup_basic_logging(log_file=None, level=logging.INFO,
