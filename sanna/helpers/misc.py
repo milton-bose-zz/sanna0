@@ -7,7 +7,7 @@ from ..common.random import theano_rng_instance
 from ..common import metrics
 from ..common import eval_metrics
 from ..common.eval_metrics import confusion_matrix
-from ..common.misc.viz import trace
+from ..misc.viz import trace
 from .loaders import read_file
 
 def evaluation(data, model, eval_metrics=[], confusion=False,
