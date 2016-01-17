@@ -1,5 +1,9 @@
 import pickle
 
+def pickle_file(data, filepath):
+    with open(filepath, mode='wb') as f:
+        pickle.dump(data, f, protocol=pickle.HIGHEST_PROTOCOL)
+
 def read_file(filepath, file_type='txt'):
     if file_type == 'txt':
         with open(filepath, mode='r') as f:
