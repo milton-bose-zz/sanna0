@@ -7,13 +7,16 @@ import sys
 import logging
 import argparse
 import yaml
+import pickle
 
 from .helpers import misc as hlp
 from .helpers import loaders
 from .helpers import model_compilers as compiler
-from .common.eval_metrics import confusion_matrix
+
 
 def run():
+
+    space = ' ' * 2
     sys.path.append(os.getcwd())
     parser = argparse.ArgumentParser(
             description="Train a simple feed-forward neural network."
@@ -22,10 +25,6 @@ def run():
             "model", type=str,
             help=("relative path to pre-trained model or model configuration"
                 " YAML file")
-            )
-    parser.add_argument(
-            "-o", "--optimize", action='store_true',
-            help="bool",
             )
     parser.add_argument(
             '-l', '--log', type=str, default=None,
@@ -40,10 +39,23 @@ def run():
 
     hlp.setup_basic_logging(log_file=args.log)
 
-    if args.model[-4:] == '.pkl':
-        model = loaders.read_file(args.model, file_type='pkl')
+    model_path = args.model
+    model_name = model_path.split('/')[-1]
+    model_name = model_name.split('.')[0]
+
+    logging.info(
+            space + "\n"+
+            space + "# " + "="* len(model_name) + " #\n"+
+            space + "# " + model_name + " #\n"+
+            space + "# " + "="* len(model_name) + " #\n"
+            )
+
+    if model_path[-4:] == '.pkl':
+        model = loaders.read_file(model_path, file_type='pkl')
+        pickled = False
+        data = None
     else:
-        cfg = yaml.load(loaders.read_file(args.model, file_type='txt'))
+        cfg = yaml.load(loaders.read_file(model_path, file_type='txt'))
         data = cfg['data']
         data = loaders.load_datasets(
                 data['filepath'], data.get('processor', None)
@@ -52,6 +64,8 @@ def run():
         if seeds is not None:
             numpy_rng = seeds['numpy']
             theano_rng = seeds['theano']
+        else:
+            numpy_rng = theano_rng = None
 
         model = compiler.compile_model(
                 cfg['architecture'], data, cost_func=cfg['cost_function'],
@@ -63,26 +77,61 @@ def run():
                 numpy_rng=numpy_rng, theano_rng=theano_rng,
                 gd_params=cfg.get('gradient_descent', None)
                 )
+        pickled = True
 
-        if args.optimize:
-            logging.info('Optimizing The model')
-            model.optimize_params(data['train'], **cfg['optimization_params'])
+        logging.info('Optimizing The model')
+        try:
+            oparams = cfg['optimization_params']
+        except:
+            oparams = {}
+
+        model.optimize_params(data['train'], **oparams)
+
+    if pickled:
+        logging.info('Pickling the model at {}'.format(model_name + '.pkl'))
+        with open(model_name + '.pkl', 'wb') as f:
+            pickle.dump(model, f, protocol=pickle.HIGHEST_PROTOCOL)
 
 
-def evaluation(data, model, eval_metrics=[], confusion=False,
-               confusion_kwrgs={}):
+    if args.evaluation is not None:
+        eval_cfg = yaml.load(
+                loaders.read_file(args.evaluation, file_type='txt')
+                )
+        if data is None:
+            data = eval_cfg['data']
+            data = loaders.load_datasets(
+                    data['filepath'], data.get('processor', None)
+                    )
+            data = data['eval']
+        else:
+            data = data['eval']
 
-    pred = model.predict(data[0])
-    eval_ = {}
-    for m in eval_metrics:
-        k = m['name']
-        f = hlp.construct_eval_metrics(m)
-        eval_[k] = f(pred, data[1])
+        eval_ = hlp.evaluation(
+                data, model, eval_metrics=eval_cfg.get('metrics', []),
+                confusion=eval_cfg.get('confusion_matrix', False)
+                )
 
-    if confusion:
-        cm = confusion_matrix(data[1], pred)
-        cms = confusion_matrix(data[1], pred, scaled=True)
-    else:
-        cm = None
-        cms = None
-    return eval_, cm, cms
+        msg = "\n"
+        msg += space + '+------------+\n'
+        msg += space + '| EVALUATION |\n'
+        msg += space + '+------------+\n'
+        for k, v in eval_['eval_metrics'].items():
+            msg += space + k +': {}\n'.format(v)
+
+        if eval_['cm'] is not None:
+            msg += '\n'
+            msg += space + '+--------------------------------------+\n'
+            msg += space + '| Confusion Matrix (Actuals along row) |\n'
+            msg += space + '+--------------------------------------+\n'
+            msg += hlp.pandas_repr(eval_['cm'], display__width=200,
+                    precision=4, display__colheader_justify='right')
+            msg += '\n\n' + space + 'Scaled Along row:\n'
+            msg += space + '-----------------\n'
+            msg += hlp.pandas_repr(eval_['cms'], display__width=200,
+                    precision=4,
+                    display__colheader_justify='right')
+            msg += '\n\n'
+            msg += '  ' + 'xo' * 39 + '\n'
+
+        logging.info(msg)
+

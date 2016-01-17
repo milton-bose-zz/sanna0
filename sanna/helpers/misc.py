@@ -1,14 +1,35 @@
 import logging
+from collections import OrderedDict
 # import inspect
 
 from ..common.random import numpy_rng_instance
 from ..common.random import theano_rng_instance
 from ..common import metrics
 from ..common import eval_metrics
+from ..common.eval_metrics import confusion_matrix
+
+def evaluation(data, model, eval_metrics=[], confusion=False,
+               confusion_kwrgs={}):
+
+    pred = model.predict(data[0])
+    eval_ = []
+    for m in eval_metrics:
+        k = m['name']
+        f = construct_eval_metrics(m)
+        eval_.append((k, f(pred, data[1])))
+    eval_ = OrderedDict(eval_)
+
+    if confusion:
+        cm = confusion_matrix(pred, data[1])
+        cms = confusion_matrix(pred, data[1], scaled=True)
+    else:
+        cm = None
+        cms = None
+    return {'eval_metrics':eval_, 'cm':cm, 'cms':cms}
 
 
 def setup_basic_logging(log_file=None, level=logging.INFO,
-                        format='%(asctime)s => %(message)s'):
+                        format='  %(asctime)s => %(message)s'):
     logging.basicConfig(
             filename=log_file, level=level, format=format
             )
@@ -49,10 +70,10 @@ def get_tensor_type(data):
     return type_
 
 
-def pandas_repr(mat, col_names=None, row_names=None, **pd_options):
+def pandas_repr(mat, col_names=None, row_names=None, margin=2, **pd_options):
     import pandas as pd
     for k, v in pd_options.items():
         k = k.replace('__', '.')
         pd.set_option(k, v)
     df = pd.DataFrame(data=mat, index=row_names, columns=col_names)
-    return repr(df)
+    return repr(df).replace('\n', '\n' + ' ' * margin)

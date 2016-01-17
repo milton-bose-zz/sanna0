@@ -7,6 +7,18 @@ import numpy as np
 
 sns.set_context('poster')
 
+def trace(model, left_scales=['linear', 'linear'],
+        right_scales=['linear', 'linear'],
+        figsize=(12, 5), i=1):
+
+    fig = train_validation_trace(
+            model.training_loss, model.validation_loss,
+            left_scales=left_scales,
+            right_scales=right_scales,
+            figsize=figsize, i=i);
+
+    return fig
+
 
 def train_validation_trace(training_loss, validation_loss,
                            left_scales=['log', 'log'],

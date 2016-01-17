@@ -4,17 +4,17 @@ from __future__ import division
 import numpy as np
 
 
-def quadratic_weighted_kappa(actual, prediction, n_classes=None):
+def quadratic_weighted_kappa(prediction, actual, n_classes=None):
 
     if n_classes is None:
         n_classes = len(np.unique(actual))
     a = np.arange(n_classes)
     w = (a[:, None] - a[None, :]) ** 2
 
-    return kappa(actual, prediction, n_classes=n_classes, weight_matrix=w)
+    return kappa(prediction, actual, n_classes=n_classes, weight_matrix=w)
 
 
-def kappa(actual, prediction, n_classes=None, weight_matrix=None):
+def kappa(prediction, actual, n_classes=None, weight_matrix=None):
 
     if n_classes is None:
         n_classes = len(np.unique(actual))
@@ -24,7 +24,9 @@ def kappa(actual, prediction, n_classes=None, weight_matrix=None):
     else:
         w = weight_matrix
 
-    cm = confusion_matrix(actual, prediction, n_classes=n_classes)
+    print(n_classes)
+
+    cm = confusion_matrix(prediction, actual, n_classes=n_classes)
 
     len_ = len(actual)
     actual_proba = cm.sum(axis=1) / len_
@@ -36,7 +38,7 @@ def kappa(actual, prediction, n_classes=None, weight_matrix=None):
     return kappa_
 
 
-def confusion_matrix(actual, prediction, n_classes=None, scaled=False):
+def confusion_matrix(prediction, actual, n_classes=None, scaled=False):
 
     if n_classes is None:
         n_classes = len(np.unique(actual))

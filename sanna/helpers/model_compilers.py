@@ -48,8 +48,9 @@ def compile_model(arch_descr, data, cost_func,
     gd_params = {} if gd_params is None else gd_params
     model_params.update(gd_params)
 
-    logger.info('Compiling the model')
+    logger.info('Compiling the model...')
+    logger.info('...')
     model = ModelClass(arch, **model_params)
-
+    logger.info('... Done!')
     return model
 
