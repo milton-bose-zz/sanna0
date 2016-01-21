@@ -21,15 +21,15 @@ def compile_model(arch_descr, data, cost_func,
     theano_rng = theano_rng_instance(theano_rng)
 
     logger.info('Constructing the architecture')
-    input_type = hlp.get_tensor_type(data['train'][0])
-    X = getattr(T, input_type)('X', dtype=str(data['train'][0].dtype))
+    input_type = hlp.get_tensor_type(data[0])
+    X = getattr(T, input_type)('X', dtype=str(data[0].dtype))
     arch = Network(
             X, arch_descr, numpy_rng=numpy_rng, theano_rng=theano_rng
             )
 
     logger.info('Setting up the model parameters')
-    output_type = hlp.get_tensor_type(data['train'][1])
-    output_dtype = str(data['train'][1].dtype)
+    output_type = hlp.get_tensor_type(data[1])
+    output_dtype = str(data[1].dtype)
     ModelClass = getattr(models, model_class)
     cost_func = hlp.construct_function(cost_func)
     confidence_func = hlp.construct_function(confidence_func)

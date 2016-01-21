@@ -68,7 +68,8 @@ def run():
             numpy_rng = theano_rng = None
 
         model = compiler.compile_model(
-                cfg['architecture'], data, cost_func=cfg['cost_function'],
+                cfg['architecture'], data['train'],
+                cost_func=cfg['cost_function'],
                 loss_func=cfg.get('loss_function', None),
                 confidence_func=cfg.get('confidence_function', None),
                 predict_func=cfg.get('predict_function', None),

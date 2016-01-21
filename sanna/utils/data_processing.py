@@ -47,42 +47,27 @@ def randomized_data_index(data_len, size=None, replace=True, p=None,
     return idx
 
 
-def split_dataset(data, train_fraction=0.70, n_ycols=1,
-                  shuffle=True, numpy_rng=None, flatten_y=True):
+def split_dataset(data, train_fraction=0.80, shuffle=False,
+        numpy_rng=None):
     """Split the dataset
 
     """
-
     numpy_rng = numpy_rng_instance(numpy_rng)
-    len_ = len(data)
-    train_size = int(train_fraction * len_)
+    len_ = len(data[0])
+    size = int(train_fraction * len_)
 
     if shuffle:
-        numpy_rng.shuffle(data)
+        idx = randomized_data_index(len_, size=size, replace=False,
+                p=None, numpy_rng=numpy_rng)
+        data = (data[0][idx], data[1][idx])
 
-    train = data[:train_size]
-    valid = data[train_size:]
+    data = dict(
+            train=(data[0][:size], data[1][:size]),
+            valid=(data[0][size:], data[1][size:])
+            )
 
-    if flatten_y:
-        train_xy = (
-            train[:, :-n_ycols],
-            train[:, -n_ycols:].ravel()
-        )
-        valid_xy = (
-            valid[:, :-n_ycols],
-            valid[:, -n_ycols:].ravel()
-        )
-    else:
-        train_xy = (
-            train[:, :-n_ycols],
-            train[:, -n_ycols:]
-        )
-        valid_xy = (
-            valid[:, :-n_ycols],
-            valid[:, -n_ycols:]
-        )
+    return data
 
-    return (train_xy, valid_xy)
 
 
 def load_data(datasets, borrow=True):

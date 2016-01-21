@@ -18,7 +18,7 @@ class BaseSupervisedModel(object):
                  scoring_func=None, predict_func=None,
                  share_memory=False, early_stopping=True,
                  batch_size=50, eta_0=0.13,
-                 learning_rate_adaptation=None, **lr_params):
+                 learning_rate_adaptation=None, **kwargs):
 
         y = getattr(T, output_type)('y', dtype=output_dtype)
 
@@ -69,11 +69,11 @@ class BaseSupervisedModel(object):
             updates = sgd.sgd_updates(grads, self.params, eta_0=eta_0)
         elif learning_rate_adaptation == 'momentum':
             updates = sgd.sgd_updates_momentum(
-                    grads, self.params, eta_0=eta_0, **lr_params
+                    grads, self.params, eta_0=eta_0, **kwargs
                     )
         elif learning_rate_adaptation == 'adadelta':
             updates = sgd.adadelta(
-                    grads, self.params, eta_0=eta_0, **lr_params
+                    grads, self.params, eta_0=eta_0, **kwargs
                     )
         else:
             NotImplementedError("%s is not yet implementd" %
@@ -139,16 +139,25 @@ class BaseSupervisedModel(object):
 
         return d
 
+
     def optimize_params(self, data, training_fraction=0.8,
                         improvement_threshold=0.995,
                         min_iter=2000, min_iter_increase=2, n_epochs=200):
         if training_fraction < 1.0:
-            len_ = len(data[0])
-            train_size = int(training_fraction * len_)
-            self.train_X.set_value(data[0][: train_size])
-            self.train_y.set_value(data[1][:train_size])
-            self.valid_X.set_value(data[0][train_size:])
-            self.valid_y.set_value(data[1][train_size:])
+
+            if training_fraction == 0:
+                self.train_X.set_value(data['train'][0])
+                self.train_y.set_value(data['train'][1])
+                self.valid_X.set_value(data['valid'][0])
+                self.valid_y.set_value(data['valid'][1])
+            else:
+                len_ = len(data[0])
+                train_size = int(training_fraction * len_)
+                self.train_X.set_value(data[0][: train_size])
+                self.train_y.set_value(data[1][:train_size])
+                self.valid_X.set_value(data[0][train_size:])
+                self.valid_y.set_value(data[1][train_size:])
+
             tl, vl, bv = optimize_params_using_early_stopping(
                     self, improvement_threshold=improvement_threshold,
                     min_iter=min_iter, min_iter_increase=min_iter_increase,
