@@ -5,7 +5,7 @@ from theano import tensor as T
 from ..common.random import numpy_rng_instance
 from ..common.random import theano_rng_instance
 from ..arch.feed_forward import FeedForwardNetwork as Network
-from . import misc as hlp
+from ..helpers import misc as hlp
 from .. import models
 
 logger = logging.getLogger(__name__)

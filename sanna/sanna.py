@@ -83,7 +83,7 @@ def run():
 
         logging.info('Optimizing The model')
         oparams = cfg.get('optimization_params', {})
-        train_fraction = oparams.pop(oparams, 0.8)
+        train_fraction = oparams.pop('training_fraction', 0.8)
         train_data = split_dataset(data['train'],
                 train_fraction=train_fraction, numpy_rng=numpy_rng)
 
