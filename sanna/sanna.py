@@ -11,7 +11,7 @@ import pickle
 
 from .helpers import misc as hlp
 from .helpers import loaders
-from .helpers import model_compilers as compiler
+from .utils import model_compilers as compiler
 from .common.random import (numpy_rng_instance, theano_rng_instance)
 from .utils.data_processing import split_dataset
 
