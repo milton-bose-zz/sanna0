@@ -35,8 +35,8 @@ def inverse_frequency(y):
     return w/len(u)
 
 
-def randomized_data_index(data_len, size=None, replace=True, p=None,
-                          numpy_rng=None):
+def randomized_data_index(data_len, size=None, replace=True,
+        p=None, numpy_rng=None):
     if size is None:
         size = data_len
 

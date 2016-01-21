@@ -8,21 +8,23 @@ import theano
 from theano import tensor as T
 
 from .utils import initialize_class_weights
+from ..common.random import numpy_rng_instance, theano_rng_instance
+from ..utils.data_procession import randomized_data_index, split_dataset
 
 class AdaBoostM2(object):
 
     def __init__(self, model_class, data, class_weight=None,
-            training_fraction=0.8, **kwargs):
+            training_fraction=0.8, numpy_rng=None, theano_rng=None,
+            **kwargs):
+
+        numpy_rng = numpy_rng_instance(numpy_rng)
+        theano_rng = theano_rng_instance(theano_rng)
+
+        self.data = split_dataset(data, train_fraction=training_fraction)
+
 
         self.model_class = model_class
         self.class_weight=class_weight
-
-        len_ = len(data[0])
-        size = int(len_ * training_fraction)
-        self.data = dict(
-                train=(data[0][:size], data[1][:size]),
-                valid=(data[0][size:], data[1][size:])
-                )
 
         keys = ['train', 'valid']
         self._weights = {}
