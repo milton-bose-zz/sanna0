@@ -139,14 +139,10 @@ class BaseSupervisedModel(object):
 
         return d
 
-
     def optimize_params(self, data, improvement_threshold=0.995,
                         min_iter=2000, min_iter_increase=2, n_epochs=200):
 
-        self.train_X.set_value(data['train'][0])
-        self.train_y.set_value(data['train'][1])
-        self.valid_X.set_value(data['valid'][0])
-        self.valid_y.set_value(data['valid'][1])
+        self.load_datasets(data)
 
         tl, vl, bv = optimize_params_using_early_stopping(
                 self, improvement_threshold=improvement_threshold,
@@ -185,3 +181,11 @@ class BaseSupervisedModel(object):
                 borrow=borrow,
                 name=prefix + var.name
                 )
+
+    def load_datasets(self, data):
+
+        self.train_X.set_value(data['train'][0])
+        self.train_y.set_value(data['train'][1])
+        self.valid_X.set_value(data['valid'][0])
+        self.valid_y.set_value(data['valid'][1])
+
