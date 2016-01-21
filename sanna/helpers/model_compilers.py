@@ -16,7 +16,6 @@ def compile_model(arch_descr, data, cost_func,
         scoring_func=None, model_class='BaseSupervisedModel',
         numpy_rng=None, theano_rng=None, gd_params=None):
 
-    logger.info('setting up the random number generators')
     numpy_rng = numpy_rng_instance(numpy_rng)
     theano_rng = theano_rng_instance(theano_rng)
 

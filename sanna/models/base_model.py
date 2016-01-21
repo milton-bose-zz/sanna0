@@ -140,32 +140,18 @@ class BaseSupervisedModel(object):
         return d
 
 
-    def optimize_params(self, data, training_fraction=0.8,
-                        improvement_threshold=0.995,
+    def optimize_params(self, data, improvement_threshold=0.995,
                         min_iter=2000, min_iter_increase=2, n_epochs=200):
-        if training_fraction < 1.0:
 
-            if training_fraction == 0:
-                self.train_X.set_value(data['train'][0])
-                self.train_y.set_value(data['train'][1])
-                self.valid_X.set_value(data['valid'][0])
-                self.valid_y.set_value(data['valid'][1])
-            else:
-                len_ = len(data[0])
-                train_size = int(training_fraction * len_)
-                self.train_X.set_value(data[0][: train_size])
-                self.train_y.set_value(data[1][:train_size])
-                self.valid_X.set_value(data[0][train_size:])
-                self.valid_y.set_value(data[1][train_size:])
+        self.train_X.set_value(data['train'][0])
+        self.train_y.set_value(data['train'][1])
+        self.valid_X.set_value(data['valid'][0])
+        self.valid_y.set_value(data['valid'][1])
 
-            tl, vl, bv = optimize_params_using_early_stopping(
-                    self, improvement_threshold=improvement_threshold,
-                    min_iter=min_iter, min_iter_increase=min_iter_increase,
-                    n_epochs=n_epochs)
-        else:
-            self.train_X.set_value(data[0])
-            self.train_y.set_value(data[1])
-
+        tl, vl, bv = optimize_params_using_early_stopping(
+                self, improvement_threshold=improvement_threshold,
+                min_iter=min_iter, min_iter_increase=min_iter_increase,
+                n_epochs=n_epochs)
         self.training_loss += tl
         self.validation_loss += vl
         self.best_validation = bv

@@ -12,6 +12,8 @@ import pickle
 from .helpers import misc as hlp
 from .helpers import loaders
 from .helpers import model_compilers as compiler
+from .common.random import (numpy_rng_instance, theano_rng_instance)
+from .utils.data_processing import split_dataset
 
 
 def run():
@@ -60,12 +62,11 @@ def run():
         data = loaders.load_datasets(
                 data['filepath'], data.get('processor', None)
                 )
+
         seeds = cfg.get('rng_seeds', None)
-        if seeds is not None:
-            numpy_rng = seeds['numpy']
-            theano_rng = seeds['theano']
-        else:
-            numpy_rng = theano_rng = None
+        logging.info('setting up the random number generators')
+        numpy_rng = numpy_rng_instance(seeds['numpy'])
+        theano_rng = theano_rng_instance(seeds['theano'])
 
         model = compiler.compile_model(
                 cfg['architecture'], data['train'],
@@ -81,12 +82,12 @@ def run():
         pickled = True
 
         logging.info('Optimizing The model')
-        try:
-            oparams = cfg['optimization_params']
-        except:
-            oparams = {}
+        oparams = cfg.get('optimization_params', {})
+        train_fraction = oparams.pop(oparams, 0.8)
+        train_data = split_dataset(data['train'],
+                train_fraction=train_fraction, numpy_rng=numpy_rng)
 
-        model.optimize_params(data['train'], **oparams)
+        model.optimize_params(train_data, **oparams)
 
     if pickled:
         logging.info('Pickling the model at {}'.format(model_name + '.pkl'))
