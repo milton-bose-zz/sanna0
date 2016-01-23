@@ -45,11 +45,10 @@ class AdaBoostM2(object):
         self.kwargs['numpy_rng'] = self.numpy_rng
         self.kwargs['theano_rng'] = self.theano_rng
 
-        def spawn_a_model(model_kwargs):
-            return compile_model(**model_kwargs)
-        self.__model = spawn_a_model
-
         self.models = []
+
+    def __spawn_a_model(self):
+        return compile_model(**copy.deepcopy(self.kwargs))
 
     def bootstrapped_data(self):
 
@@ -69,7 +68,7 @@ class AdaBoostM2(object):
 
         data = self.bootstrapped_data()
         logger.info('compling... ')
-        model = self.__model(copy.deepcopy(self.kwargs))
+        model = self.__spawn_a_model()
         logger.info('... done!')
         model.optimize_params(
                 data,
@@ -85,6 +84,10 @@ class AdaBoostM2(object):
         data = self.data[key]
         w = self._weights[key]
         D = w.sum(axis=1)/w.sum()
+        q = w/w.sum(axis=1, keepdims=True)
+        q[np.arange(len(q)), data[1]] = 1.0
+        #print('q: ', q)
+        #print(D)
 
         #compute score
         score = model.confidence(data[0])
@@ -92,7 +95,7 @@ class AdaBoostM2(object):
         score = score * (2 * y - 1)
         #print(score)
 
-        eps = (D * (1 - score.sum(axis=1))).sum() / 2
+        eps = (D * (1 - np.sum(score * q, axis=1))).sum() / 2
         beta = eps / (1 - eps) # beta < 1.0
 
         scale = beta ** ((1 + score) / 2)
@@ -114,8 +117,8 @@ class AdaBoostM2(object):
                     min_iter_increase=min_iter_increase,
                     n_epochs=n_epochs
                     )
-            for k in self.keys:
-                eps, beta = self.update_weights(self, m, k)
+            for k in self._keys:
+                eps, beta = self.update_weights(m, k)
                 logger.info('{0} ==> epsilon: {1}, beta: {2}'.format(
                     k, eps, beta
                     )
@@ -124,12 +127,13 @@ class AdaBoostM2(object):
                 self.neg_log_beta[k].append(- np.log(beta))
 
             self.models.append(m)
+            i += 1
 
         logger.info('done optimizing all of the models')
         return self
 
 
-    def confidence(self, X, key='train'):
+    def confidence(self, X, key='valid'):
 
         Y = np.zeros((len(X), 1))
         for m, nlb in zip(self.models, self.neg_log_beta[key]):
@@ -137,7 +141,7 @@ class AdaBoostM2(object):
 
         return Y
 
-    def predict(self, X, key='train'):
+    def predict(self, X, key='valid'):
 
         Y = self.confidence(X, key)
         return Y.argmax(axis=1)
