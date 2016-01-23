@@ -145,12 +145,12 @@ class BaseSupervisedModel(object):
 
         return d
 
-    def train(self, data, train_fraction=0.8,
+    def train(self, data, training_fraction=0.8,
             improvement_threshold=0.995,
             min_iter=2000, min_iter_increase=2, n_epochs=200):
 
         train_data = split_dataset(
-                data['train'], train_fraction=train_fraction,
+                data['train'], training_fraction=training_fraction,
                 numpy_rng=self.numpy_rng)
 
         self.optimize_params(train_data,

@@ -59,14 +59,16 @@ def randomized_data_index(data_len, size=None, replace=True,
     return idx
 
 
-def split_dataset(data, train_fraction=0.80, shuffle=False,
+def split_dataset(data, training_fraction=0.80, shuffle=False,
         numpy_rng=None):
     """Split the dataset
 
     """
+    assert training_fraction <= 1.0
+    assert training_fraction > 0.0
     numpy_rng = numpy_rng_instance(numpy_rng)
     len_ = len(data[0])
-    size = int(train_fraction * len_)
+    size = int(training_fraction * len_)
 
     if shuffle:
         idx = randomized_data_index(len_, size=size, replace=False,
