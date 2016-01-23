@@ -23,7 +23,7 @@ class AdaBoostM2(object):
         self.numpy_rng = numpy_rng_instance(numpy_rng)
         self.theano_rng = theano_rng_instance(theano_rng)
 
-        self.data = split_dataset(data, train_fraction=training_fraction,
+        self.data = split_dataset(data, training_fraction=training_fraction,
                 numpy_rng=numpy_rng)
 
         self.class_weight=class_weight

@@ -10,8 +10,6 @@ from .common.random import (numpy_rng_instance, theano_rng_instance)
 from . import ensemble
 
 
-
-
 class Sankara(object):
 
     def __init__(self, cfg_yaml):
@@ -52,7 +50,8 @@ class Sankara(object):
         ensemble_ = self.cfg.get('ensemble', None)
         if ensemble_ is None:
             self.optimize_kwargs = self.cfg.pop('optimization_params', {})
-            model = compiler.compile_model(**model_kwargs)
+            self.optimize_kwargs['data'] = self.data['train']
+            self.model = compiler.compile_model(**model_kwargs)
         else:
             self.optimize_kwargs = self.cfg.pop('optimization_params', {})
             model_kwargs['training_fraction'] = self.optimize_kwargs.pop(
@@ -60,10 +59,13 @@ class Sankara(object):
                     )
 
             model = getattr(ensemble, ensemble_['method'])
-            model = model(**model_kwargs)
+            self.model = model(**model_kwargs)
 
     def train(self, logging_stream=None, **kwargs):
-        pass
+
+        self.model.train(**self.optimize_kwargs)
+
+        return self.model
 
     def evaluate(self, logging_stream=None, **kwargs):
         pass

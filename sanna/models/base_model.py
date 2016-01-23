@@ -7,7 +7,7 @@ import theano
 from theano import tensor as T
 
 from ..optimizers import sgd
-from .utils.data_processing import split_dataset
+from ..utils.data_processing import split_dataset
 from ..optimizers.model_optimizers import (
         optimize_params_using_early_stopping
         )
@@ -150,7 +150,7 @@ class BaseSupervisedModel(object):
             min_iter=2000, min_iter_increase=2, n_epochs=200):
 
         train_data = split_dataset(
-                data['train'], training_fraction=training_fraction,
+                data, training_fraction=training_fraction,
                 numpy_rng=self.numpy_rng)
 
         self.optimize_params(train_data,
