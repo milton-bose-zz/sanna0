@@ -30,11 +30,6 @@ class Sankara(object):
         numpy_rng = numpy_rng_instance(seeds['numpy'])
         theano_rng = theano_rng_instance(seeds['theano'])
 
-        optimize_kwargs= self.cfg.get('optimization_params', {})
-        train_fraction = optimize_kwargs.pop(
-                'training_fraction', 0.8
-                )
-
         model_kwargs = dict(
                 data=self.data['train'],
                 arch_descr=self.cfg['architecture'],
@@ -56,26 +51,16 @@ class Sankara(object):
 
         ensemble_ = self.cfg.get('ensemble', None)
         if ensemble_ is None:
+            self.optimize_kwargs = self.cfg.pop('optimization_params', {})
             model = compiler.compile_model(**model_kwargs)
         else:
-            model = getattr(ensemble, ensemble_['method'])
-            model = model(
-
-                    training_fraction=train_fraction,
-                    numpy_rng=numpy_rng, theano_rng=theano_rng,
-                    arch_descr=self.cfg['architecture'],
-                    cost_func=self.cfg['cost_function'],
-                    loss_func=self.cfg.get('loss_function', None),
-                    confidence_func=self.cfg.get(
-                        'confidence_function', None),
-                    predict_func=self.cfg.get('predict_function', None),
-                    scoring_func=self.cfg.get('scoring_function', None),
-                    model_class=self.cfg['class'],
-                    gd_params=self.cfg.get('gradient_descent', None)
+            self.optimize_kwargs = self.cfg.pop('optimization_params', {})
+            model_kwargs['training_fraction'] = self.optimize_kwargs.pop(
+                    'training_fraction', 0.8
                     )
 
-            model.train(n_models=2, **optimize_kwargs)
-
+            model = getattr(ensemble, ensemble_['method'])
+            model = model(**model_kwargs)
 
     def train(self, logging_stream=None, **kwargs):
         pass
