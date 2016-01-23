@@ -6,6 +6,18 @@ from theano import shared
 
 from ..common.random import numpy_rng_instance
 
+def binarize(arr, n_classes=None):
+
+    arr = arr.astype(int)
+
+    if n_classes is None:
+        n_classes = arr.max() + 1
+
+    output = np.zeros((len(arr), n_classes))
+    output[np.arange(len(arr)), arr] = 1
+
+    return output
+
 
 def shared_dataset(data_xy, borrow=True, name='train'):
 

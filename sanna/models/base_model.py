@@ -42,13 +42,17 @@ class BaseSupervisedModel(object):
         else:
             confidence_ = confidence_func(self.Y)
 
+        self.confidence = theano.function(
+                inputs=[self.X], outputs=confidence_
+                )
+
         if scoring_func is None:
-            score_ = self.Y * y
+            score_ = self.Y[T.arange(self.Y.shape[0]), y]
         else:
             score_ = scoring_func(self.Y, y)
 
         self.score = theano.function(inputs=[self.X, y], outputs=score_)
-        self.confidence = theano.function(inputs=[self.X], outputs=confidence_)
+
 
         if predict_func is None:
             pred = self.Y

@@ -11,6 +11,7 @@ from .. import models
 logger = logging.getLogger(__name__)
 
 
+
 def compile_model(arch_descr, data, cost_func,
         confidence_func=None, loss_func=None, predict_func=None,
         scoring_func=None, model_class='BaseSupervisedModel',

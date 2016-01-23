@@ -14,6 +14,7 @@ from .helpers import loaders
 from .utils import model_compilers as compiler
 from .common.random import (numpy_rng_instance, theano_rng_instance)
 from .utils.data_processing import split_dataset
+from . import ensemble
 
 
 def run():
@@ -64,30 +65,55 @@ def run():
                 )
 
         seeds = cfg.get('rng_seeds', None)
+        oparams = cfg.get('optimization_params', {})
+        train_fraction = oparams.pop('training_fraction', 0.8)
+
         logging.info('setting up the random number generators')
         numpy_rng = numpy_rng_instance(seeds['numpy'])
         theano_rng = theano_rng_instance(seeds['theano'])
 
-        model = compiler.compile_model(
-                cfg['architecture'], data['train'],
-                cost_func=cfg['cost_function'],
-                loss_func=cfg.get('loss_function', None),
-                confidence_func=cfg.get('confidence_function', None),
-                predict_func=cfg.get('predict_function', None),
-                scoring_func=cfg.get('scoring_func', None),
-                model_class=cfg['class'],
-                numpy_rng=numpy_rng, theano_rng=theano_rng,
-                gd_params=cfg.get('gradient_descent', None)
-                )
-        pickled = True
+        ensemble_ = cfg.get('ensemble', None)
+        if ensemble_ is not None:
+            model = compiler.compile_model(
+                    cfg['architecture'], data['train'],
+                    cost_func=cfg['cost_function'],
+                    loss_func=cfg.get('loss_function', None),
+                    confidence_func=cfg.get('confidence_function', None),
+                    predict_func=cfg.get('predict_function', None),
+                    scoring_func=cfg.get('scoring_function', None),
+                    model_class=cfg['class'],
+                    numpy_rng=numpy_rng, theano_rng=theano_rng,
+                    gd_params=cfg.get('gradient_descent', None)
+                    )
+            logging.info('Optimizing The model')
+            train_data = split_dataset(
+                    data['train'],
+                    train_fraction=train_fraction,
+                    numpy_rng=numpy_rng
+                    )
+            model.optimize_params(train_data, **oparams)
+            pickled = True
 
-        logging.info('Optimizing The model')
-        oparams = cfg.get('optimization_params', {})
-        train_fraction = oparams.pop('training_fraction', 0.8)
-        train_data = split_dataset(data['train'],
-                train_fraction=train_fraction, numpy_rng=numpy_rng)
+        else:
+            model = getattr(ensemble, ensemble_['method'])
+            n_models = ensemble_['n_models']
+            logging.info('Setting up the Boosted Model')
+            model = model(
+                    data['train'],
+                    training_fraction=train_fraction,
+                    numpy_rng=numpy_rng, theano_rng=theano_rng,
+                    architecture=cfg['architecture'],
+                    cust_func=cfg['cost_function'],
+                    loss_func=cfg.get('loss_function', None),
+                    confidence_func=cfg.get('confidence_function', None),
+                    predict_func=cfg.get('predict_function', None),
+                    scoring_func=cfg.get('scoring_function', None),
+                    model_class=cfg['class'],
+                    gd_params=cfg.get('gradient_descent', None)
+                    )
 
-        model.optimize_params(train_data, **oparams)
+            model.train(n_models=n_models, **oparams)
+            pickled = True
 
     if pickled:
         logging.info('Pickling the model at {}'.format(model_name + '.pkl'))
