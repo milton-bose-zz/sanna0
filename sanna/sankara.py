@@ -63,7 +63,8 @@ class Sankara(object):
                     'training_fraction', 0.8
                     )
 
-            model = getattr(ensemble, ensemble_['method'])
+            model = getattr(ensemble, ensemble_.pop('method'))
+            model_kwargs.update(ensemble_)
             self.model = model(**model_kwargs)
 
         if logging_stream is not None:
