@@ -63,14 +63,18 @@ def karma(ctx, model_config, log=None, pickle=True):
         help='number of models')
 @click.option('--min_iter', type=int, default=2000,
         help='number of iteration')
-@click.option('--n_epochs', type=int, default=10,
+@click.option('--n_epochs', type=int, default=20,
         help='number of epochs')
+@click.option('--supplied/--use-cfg', default=False)
 @click.pass_context
-def train(ctx, n_models, min_iter, n_epochs):
+def train(ctx, n_models, min_iter, n_epochs, supplied):
     snkr = ctx.obj['snkr']
     pickle = ctx.obj['pickle']
-    snkr.train(logging_stream=__LOG, n_models=n_models,
+    if supplied:
+        snkr.train(logging_stream=__LOG, n_models=n_models,
             min_iter=min_iter, n_epochs=n_epochs)
+    else:
+        snkr.train(logging_stream=__LOG, n_models=n_models)
 
     if pickle:
         logging.info('pickling the model')
