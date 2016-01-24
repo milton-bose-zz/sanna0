@@ -27,6 +27,9 @@ class AdaBoostM2(object):
         self.data = split_dataset(data, training_fraction=training_fraction,
                 numpy_rng=numpy_rng)
 
+        log_distributions(self.data['train'][1], type_='training data')
+        log_distributions(self.data['valid'][1], type_='validation data')
+
         self._keys = ['train', 'valid']
 
         logger.info('initializing sample weights')
@@ -69,6 +72,10 @@ class AdaBoostM2(object):
             min_iter=2000, min_iter_increase=2, n_epochs=20):
 
         data = self.bootstrapped_data()
+
+        log_distributions(data['train'][1], type_='training sample')
+        log_distributions(data['valid'][1], type_='validation sample')
+
         model = self.__spawn_a_model()
         model.optimize_params(
                 data,
@@ -145,3 +152,9 @@ class AdaBoostM2(object):
 
         Y = self.confidence(X, key)
         return Y.argmax(axis=1)
+
+
+def log_distributions(data, type_='training sample'):
+
+    count = np.unique(data, return_counts=True)[1]
+    logger.info('{0} distribution: {1}'.format(type_, count))
