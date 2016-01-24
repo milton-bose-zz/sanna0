@@ -7,6 +7,7 @@ import inspect
 import copy
 
 from .helpers import loaders
+from .helpers import misc as hlp
 from .utils import model_compilers as compiler
 from .common.random import (numpy_rng_instance, theano_rng_instance)
 from . import ensemble
@@ -94,9 +95,33 @@ class Sankara(object):
 
         return self.model
 
-    def evaluate(self, logging_stream=None, **kwargs):
-        pass
+    def evaluate(self, eval_yaml, ensemble_only=True, logging_stream=None,
+            data=None):
+
+        cfg = yaml.loag(eval_yaml)
+
+        if data is None:
+            data = self.data['eval']
+
+        if ensemble_only:
+            eval_ = hlp.evaluation(
+                    data, self.model, eval_metrics=cfg.get('metrics', []),
+                    confusion=cfg.get('confusion_matrix', False)
+                    )
+        else:
+            eval_ = [
+                    hlp.evaluation(
+                    data, m, eval_metrics=cfg.get('metrics', []),
+                    confusion=cfg.get('confusion_matrix', False)
+                    ) for m in (self.model.models[:] + [self.model])
+                    ]
+
+        return eval_
+
+
+
 
     def predict(self, X, logging_stream=None, **kwargs):
         pass
+
 

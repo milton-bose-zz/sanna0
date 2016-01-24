@@ -73,6 +73,7 @@ def train(ctx, n_models, min_iter, n_epochs):
             min_iter=min_iter, n_epochs=n_epochs)
 
     if pickle:
+        logging.info('pickling the model')
         loaders.pickle_file(snkr, ctx.obj['model_name']+'.pkl')
 
 
