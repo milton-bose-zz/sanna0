@@ -38,10 +38,11 @@ def visualize(model_pickle, i=1, figsize=(12,6)):
     return fig
 
 
-def setup_basic_logging(log_file=None, level=logging.INFO,
-                        format='  %(asctime)s => %(message)s'):
+def setup_basic_logging(handlers=[], level=logging.INFO,
+                        format='  %(asctime)s UTC => %(message)s'):
     logging.basicConfig(
-            filename=log_file, level=level, format=format
+            level=level, format=format,
+            handlers=handlers
             )
 
 

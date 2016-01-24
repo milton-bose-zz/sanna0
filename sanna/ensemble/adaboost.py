@@ -23,12 +23,14 @@ class AdaBoostM2(object):
         self.numpy_rng = numpy_rng_instance(numpy_rng)
         self.theano_rng = theano_rng_instance(theano_rng)
 
+        logger.info('splitting the data into `train` and `valid` sets')
         self.data = split_dataset(data, training_fraction=training_fraction,
                 numpy_rng=numpy_rng)
 
-        self.class_weight=class_weight
-
         self._keys = ['train', 'valid']
+
+        logger.info('initializing sample weights')
+        self.class_weight=class_weight
         self._weights = {}
         self.eps = {}
         self.neg_log_beta = {}
@@ -67,9 +69,7 @@ class AdaBoostM2(object):
             min_iter=2000, min_iter_increase=2, n_epochs=20):
 
         data = self.bootstrapped_data()
-        logger.info('compling... ')
         model = self.__spawn_a_model()
-        logger.info('... done!')
         model.optimize_params(
                 data,
                 improvement_threshold=improvement_threshold,
@@ -105,7 +105,7 @@ class AdaBoostM2(object):
 
         return eps, beta
 
-    def train(self, n_models=2, improvement_threshold=0.995,
+    def train_(self, n_models=2, improvement_threshold=0.995,
             min_iter=2000, min_iter_increase=2, n_epochs=20):
 
         i = 0

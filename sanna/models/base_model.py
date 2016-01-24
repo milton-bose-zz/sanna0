@@ -145,7 +145,7 @@ class BaseSupervisedModel(object):
 
         return d
 
-    def train(self, data, training_fraction=0.8,
+    def train_(self, data, training_fraction=0.8,
             improvement_threshold=0.995,
             min_iter=2000, min_iter_increase=2, n_epochs=200):
 
