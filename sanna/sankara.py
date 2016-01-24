@@ -95,10 +95,10 @@ class Sankara(object):
 
         return self.model
 
-    def evaluate(self, eval_yaml, ensemble_only=True, logging_stream=None,
+    def evaluate(self, eval_yaml, ensemble_only=False, logging_stream=None,
             data=None):
 
-        cfg = yaml.loag(eval_yaml)
+        cfg = yaml.load(eval_yaml)
 
         if data is None:
             data = self.data['eval']

@@ -1,5 +1,6 @@
 import logging
 from collections import OrderedDict
+import copy
 # import inspect
 
 from ..common.random import numpy_rng_instance
@@ -51,6 +52,7 @@ def construct_eval_metrics(func_descr):
 
 
 def construct_function(func_descr, module=metrics):
+    func_descr = copy.deepcopy(func_descr)
     if func_descr is None:
         return func_descr
     elif hasattr(func_descr, '__call__'):

@@ -77,6 +77,79 @@ def train(ctx, n_models, min_iter, n_epochs):
         loaders.pickle_file(snkr, ctx.obj['model_name']+'.pkl')
 
 
+@karma.command(short_help='evaluation')
+@click.argument('eval_cfg', type=click.Path())
+@click.option('--data', type=click.Path())
+@click.pass_context
+def evaluate(ctx, eval_cfg, data=None):
+
+    snkr = ctx.obj['snkr']
+    pickle = ctx.obj['pickle']
+
+    eval_yaml = loaders.read_file(eval_cfg, 'txt')
+    if data is None:
+        data = snkr.data['eval']
+    else:
+        data = loaders.read_file(data, 'pkl')
+
+    eval_ = snkr.evaluate(eval_yaml, logging_stream=__LOG, data=data)
+
+    eval_msg = "\n"
+    eval_msg += __spc + '+------------+\n'
+    eval_msg += __spc + '| EVALUATION |\n'
+    eval_msg += __spc + '+------------+\n'
+    eval_msg += '\n'
+
+    if isinstance(eval_, list):
+        last = eval_.pop()
+        i = 0
+        for e in eval_:
+            title = 'MODEL %i' % i
+            msg = evaluation_printout(e, title)
+            eval_msg += msg
+            i += 1
+        title = 'MODEL ENSEMBLE'
+    else:
+        last = eval_
+        title = None
+
+    msg = evaluation_printout(last, title=title)
+    eval_msg += msg
+    logging.info(eval_msg)
+
+    if pickle:
+        logging.info('pickling the model')
+        loaders.pickle_file(snkr, ctx.obj['model_name']+'.pkl')
+
+
+def evaluation_printout(eval_, title=None):
+
+    if title is None:
+        msg = '\n'
+    else:
+        msg = '\n'
+        msg += __spc + title  + '\n'
+        msg += __spc + '=' * len(title) + '\n'
+
+    for k, v in eval_['eval_metrics'].items():
+        msg += __spc + k +': {}\n'.format(v)
+
+    if eval_['cm'] is not None:
+        msg += '\n'
+        msg += __spc + '+--------------------------------------+\n'
+        msg += __spc + '| Confusion Matrix (Actuals along row) |\n'
+        msg += __spc + '+--------------------------------------+\n'
+        msg += hlp.pandas_repr(eval_['cm'], display__width=200,
+                    precision=4, display__colheader_justify='right')
+        msg += '\n\n' + __spc + 'Scaled Along row:\n'
+        msg += __spc + '-----------------\n'
+        msg += hlp.pandas_repr(eval_['cms'], display__width=200,
+                    precision=4,
+                    display__colheader_justify='right')
+    msg += '\n\n'
+
+    return msg
+
 
 def banner(model_name):
 
