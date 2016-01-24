@@ -1,4 +1,5 @@
 import pickle
+#import os
 
 def pickle_file(data, filepath):
     with open(filepath, mode='wb') as f:
@@ -11,6 +12,8 @@ def read_file(filepath, file_type='txt'):
     elif file_type == 'pkl':
         with open(filepath, mode='rb') as f:
             data = pickle.load(f)
+    elif file_type is None:
+        raise NotImplementedError('file type is not implemented')
     else:
         raise Exception('Type not recognized')
 
