@@ -151,7 +151,7 @@ class BaseSupervisedModel(object):
 
         train_data = split_dataset(
                 data, training_fraction=training_fraction,
-                numpy_rng=self.numpy_rng)
+                numpy_rng=self.arch.numpy_rng)
 
         self.optimize_params(train_data,
                 improvement_threshold=improvement_threshold,

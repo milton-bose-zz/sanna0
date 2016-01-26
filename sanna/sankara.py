@@ -76,8 +76,9 @@ class Sankara(object):
 
     def train(self, logging_stream=None, **kwargs):
 
+        keys = list(kwargs.keys())
         args = inspect.getargspec(self.model.train_).args
-        for k in kwargs.keys():
+        for k in keys:
             if k not in args:
                 kwargs.pop(k)
         optimize_kwargs = copy.deepcopy(self.optimize_kwargs)
@@ -96,7 +97,7 @@ class Sankara(object):
 
         return self.model
 
-    def evaluate(self, eval_yaml, ensemble_only=False, logging_stream=None,
+    def evaluate(self, eval_yaml, logging_stream=None,
             data=None):
 
         cfg = yaml.load(eval_yaml)
@@ -104,7 +105,7 @@ class Sankara(object):
         if data is None:
             data = self.data['eval']
 
-        if ensemble_only:
+        if not hasattr(self.model, 'models'):
             eval_ = hlp.evaluation(
                     data, self.model, eval_metrics=cfg.get('metrics', []),
                     confusion=cfg.get('confusion_matrix', False)
