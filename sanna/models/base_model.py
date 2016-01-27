@@ -49,7 +49,10 @@ class BaseSupervisedModel(object):
                 )
 
         if scoring_func is None:
-            score_ = self.Y[T.arange(self.Y.shape[0]), y]
+            try:
+                score_ = self.Y[T.arange(self.Y.shape[0]), y]
+            except TypeError:
+                score_ = cost_func(self.Y, y)
         else:
             score_ = scoring_func(self.Y, y)
 
