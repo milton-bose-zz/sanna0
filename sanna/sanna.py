@@ -95,6 +95,10 @@ def evaluate(ctx, eval_cfg, data=None):
         data = snkr.data['eval']
     else:
         data = loaders.read_file(data, 'pkl')
+        try:
+            data = data['eval']
+        except:
+            pass
 
     eval_ = snkr.evaluate(eval_yaml, logging_stream=__LOG, data=data)
 
