@@ -28,7 +28,6 @@ class Sankara(object):
         self.data = loaders.load_datasets(
                 data['filepath'], data.get('processor', None)
                 )
-
         logger.info('seeding random number generators')
         seeds = self.cfg.get('rng_seeds', None)
         numpy_rng = numpy_rng_instance(seeds['numpy'])
@@ -64,6 +63,15 @@ class Sankara(object):
                     )
 
             model = getattr(ensemble, ensemble_.pop('method'))
+            try:
+                sample_weights = ensemble_.pop('sample_weights')
+            except:
+                pass
+            else:
+                if sample_weights is not None:
+                    model_kwargs['sample_weights'] = loaders.load_datasets(
+                            sample_weights
+                            )
             model_kwargs.update(ensemble_)
             self.model = model(**model_kwargs)
 
@@ -124,6 +132,7 @@ class Sankara(object):
 
 
     def predict(self, X, logging_stream=None, **kwargs):
-        pass
+
+        return self.model.predict(X)
 
 

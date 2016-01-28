@@ -77,7 +77,11 @@ def train(ctx, n_models, min_iter, n_epochs, supplied):
         snkr.train(logging_stream=__LOG, n_models=n_models)
 
     if pickle:
-        logging.info('pickling the model')
+        logging.info('pickling the model to %s' % (
+            ctx.obj['model_name'] + '.pkl'
+            )
+
+            )
         loaders.pickle_file(snkr, ctx.obj['model_name']+'.pkl')
 
 
@@ -88,7 +92,6 @@ def train(ctx, n_models, min_iter, n_epochs, supplied):
 def evaluate(ctx, eval_cfg, data=None):
 
     snkr = ctx.obj['snkr']
-    pickle = ctx.obj['pickle']
 
     eval_yaml = loaders.read_file(eval_cfg, 'txt')
     if data is None:
@@ -124,10 +127,6 @@ def evaluate(ctx, eval_cfg, data=None):
     msg = evaluation_printout(last, title=title)
     eval_msg += msg
     logging.info(eval_msg)
-
-    if pickle:
-        logging.info('pickling the model')
-        loaders.pickle_file(snkr, ctx.obj['model_name']+'.pkl')
 
 
 def evaluation_printout(eval_, title=None):

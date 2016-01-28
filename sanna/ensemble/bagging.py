@@ -13,7 +13,7 @@ from ..utils.data_processing import (randomized_data_index,
                                     split_dataset)
 from ..utils.model_compilers import compile_model
 
-class Bagged(object):
+class Bagging(object):
 
     def __init__(self, data, sample_weights=None,
             training_fraction=0.8, numpy_rng=None, theano_rng=None,
@@ -23,6 +23,9 @@ class Bagged(object):
         self.theano_rng = theano_rng_instance(theano_rng)
 
         logger.info('splitting the data into `train` and `valid` sets')
+        if sample_weights is None:
+            sample_weights = np.ones(len(self.data[0]))
+
         self.data = split_dataset(data, training_fraction=training_fraction,
                 numpy_rng=numpy_rng)
         len_ = len(self.data['train'][0])
