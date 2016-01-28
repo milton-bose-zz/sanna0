@@ -22,16 +22,17 @@ class Bagging(object):
         self.numpy_rng = numpy_rng_instance(numpy_rng)
         self.theano_rng = theano_rng_instance(theano_rng)
 
-        logger.info('splitting the data into `train` and `valid` sets')
         if sample_weights is None:
-            sample_weights = np.ones(len(self.data[0]))
+            sample_weights = np.ones(len(data[0]))
 
+        logger.info('splitting the data into `train` and `valid` sets')
         self.data = split_dataset(data, training_fraction=training_fraction,
                 numpy_rng=numpy_rng)
+
         len_ = len(self.data['train'][0])
         self._weights = dict(
-                train=sample_weights[:len_],
-                valid=sample_weights[len_:]
+                train=sample_weights[:len_]/sample_weights[:len_].sum(),
+                valid=sample_weights[len_:]/sample_weights[len_:].sum()
                 )
 
         log_distributions(self.data['train'][1], type_='training data')
