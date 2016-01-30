@@ -7,7 +7,6 @@ import numpy as np
 
 import copy
 
-
 from ..common.random import numpy_rng_instance, theano_rng_instance
 from ..utils.data_processing import (split_dataset, randomized_data_index)
 from ..utils.model_compilers import compile_model
