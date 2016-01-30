@@ -4,30 +4,17 @@ import logging
 logger = logging.getLogger(__name__)
 
 import numpy as np
-import copy
+#import copy
+from .ensemble import Ensemble
+#from ..utils.model_compilers import compile_model
 
-from ..common.random import numpy_rng_instance, theano_rng_instance
-from ..utils.data_processing import (split_dataset)
-from ..utils.model_compilers import compile_model
-
-
-
-class LSBoost(object):
+class LSBoost(Ensemble):
 
     def __init__(self, data, training_fraction=0.8, numpy_rng=None,
             theano_rng=None, **kwargs):
 
-        self.numpy_rng = numpy_rng_instance(numpy_rng)
-        self.theano_rng = theano_rng_instance(theano_rng)
-
-        logger.info('splitting the data into `train` and `valid` sets')
-        self.data = split_dataset(data, training_fraction=training_fraction,
-                numpy_rng=numpy_rng)
-
-        self._keys = ['train', 'valid']
-
-        logger.info('initializing sample weights')
-
+        Ensemble.__init__(self, data, training_fraction=training_fraction,
+                numpy_rng=numpy_rng, theano_rng=theano_rng)
 
         self.kwargs = kwargs
         self.kwargs['data'] = self.data['train']
@@ -36,25 +23,7 @@ class LSBoost(object):
 
         self.models = []
 
-    def __spawn_a_model(self):
-
-        return compile_model(**copy.deepcopy(self.kwargs))
-
-    def train_a_model(self, improvement_threshold=0.995,
-            min_iter=2000, min_iter_increase=2, n_epochs=20):
-
-        model = self.__spawn_a_model()
-        model.optimize_params(
-                self.data,
-                improvement_threshold=improvement_threshold,
-                min_iter=min_iter,
-                min_iter_increase=min_iter_increase,
-                n_epochs=n_epochs
-                )
-        return model
-
-
-    def train_(self, n_models=2, improvement_threshold=0.995,
+    def train_(self, n_models=10, improvement_threshold=0.995,
             min_iter=2000, min_iter_increase=2, n_epochs=20):
 
         i = 0
@@ -66,14 +35,6 @@ class LSBoost(object):
                     min_iter_increase=min_iter_increase,
                     n_epochs=n_epochs
                     )
-            for k in self._keys:
-                eps, beta = self.update_weights(m, k)
-                logger.info('{0} ==> epsilon: {1}, beta: {2}'.format(
-                    k, eps, beta
-                    )
-                    )
-                self.eps[k].append(eps)
-                self.neg_log_beta[k].append(- np.log(beta))
 
             self.models.append(m)
             i += 1
@@ -81,11 +42,22 @@ class LSBoost(object):
         logger.info('done optimizing all of the models')
         return self
 
+    def bootstrapped_data(self):
 
+        data = {}
+        for k, v in self.data.items():
+            data[k] = (v[0], v[1] - self.predict(v[0]))
 
+        return data
 
+    def confidence(self, X):
 
+        Y = np.zeros((len(X), 1))
+        for m in self.models:
+            Y = Y + m.confidence(X)
 
+    def predict(self, X):
 
+        return self.confidence(X)
 
 
