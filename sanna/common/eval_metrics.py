@@ -51,6 +51,10 @@ def confusion_matrix(prediction, actual, n_classes=None, scaled=False):
     return mat
 
 
+def MSE(pred, actual):
+
+    return np.mean((pred - actual) ** 2) / 2
+
 def zero_one_loss(pred, actual):
     return pred != actual
 
