@@ -55,9 +55,8 @@ class LSBoost(Ensemble):
         Y = np.zeros((len(X), 1))
         for m in self.models:
             Y = Y + m.confidence(X)
+        return Y
 
     def predict(self, X):
 
         return self.confidence(X)
-
-

@@ -1,5 +1,5 @@
 from .adaboost import AdaBoostM2
-#from .bagging import Bagging
+from .lsboost import LSBoost
 from .boosted_bagging import BoostedBagging
 
-__all__ = ['AdaBoostM2', 'BoostedBagging']
+__all__ = ['AdaBoostM2', 'BoostedBagging', 'LSBoost']
