@@ -13,14 +13,17 @@ from ..utils.data_processing import (randomized_data_index,
                                     split_dataset)
 from ..utils.model_compilers import compile_model
 
-class Bagging(object):
+class BoostedBagging(object):
 
     def __init__(self, data, sample_weights=None,
+            weighting_function=None,
             training_fraction=0.8, numpy_rng=None, theano_rng=None,
             **kwargs):
 
         self.numpy_rng = numpy_rng_instance(numpy_rng)
         self.theano_rng = theano_rng_instance(theano_rng)
+
+        self._weighting_func = weighting_function
 
         if sample_weights is None:
             sample_weights = np.ones(len(data[0]))
@@ -63,6 +66,13 @@ class Bagging(object):
 
         return data
 
+    def update_sample_weights(self):
+
+        for k, v in self.data.items():
+            Y = self.predict(v[0])
+            self._weights[k] = self._weighting_func(Y, v[1])
+
+
     def train_a_model(self, improvement_threshold=0.995,
             min_iter=2000, min_iter_increase=2, n_epochs=20):
 
@@ -81,7 +91,6 @@ class Bagging(object):
                 )
         return model
 
-
     def train_(self, n_models=10, improvement_threshold=0.995,
             min_iter=2000, min_iter_increase=2, n_epochs=20):
 
@@ -94,8 +103,8 @@ class Bagging(object):
                     min_iter_increase=min_iter_increase,
                     n_epochs=n_epochs
                     )
-
             self.models.append(m)
+            self.update_sample_weights()
             i += 1
 
         logger.info('done optimizing all of the models')

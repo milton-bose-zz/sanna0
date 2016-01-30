@@ -95,6 +95,7 @@ def evaluate(ctx, eval_cfg, data=None):
 
     eval_yaml = loaders.read_file(eval_cfg, 'txt')
     if data is None:
+        #print(snkr.data)
         data = snkr.data['eval']
     else:
         data = loaders.read_file(data, 'pkl')

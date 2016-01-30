@@ -25,7 +25,7 @@ class AdaBoostM2(object):
 
         logger.info('splitting the data into `train` and `valid` sets')
         self.data = split_dataset(data, training_fraction=training_fraction,
-                numpy_rng=numpy_rng)
+                numpy_rng=self.numpy_rng)
 
         log_distributions(self.data['train'][1], type_='training data')
         log_distributions(self.data['valid'][1], type_='validation data')
