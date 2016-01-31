@@ -31,8 +31,12 @@ class FeedForwardNetwork(NetworkArchitecture):
                         theano_rng=self.theano_rng, **layer_descr
                         )
                     )
-            self.reg += self.layers[-1].reg
-            self.params += self.layers[-1].params
+            try:
+                self.reg += self.layers[-1].reg
+                self.params += self.layers[-1].params
+            except:
+                pass
+
 
         self.Y = self.layers[-1].Y
 
