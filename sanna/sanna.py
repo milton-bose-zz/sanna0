@@ -22,6 +22,7 @@ __spc = ' ' * __MARGIN
 __LOG = io.StringIO()
 __HNDL = logging.StreamHandler(__LOG)
 
+sys.setrecursionlimit(50000)
 
 @click.group(invoke_without_command=True, chain=True)
 @click.argument('model_config', type=click.Path())
