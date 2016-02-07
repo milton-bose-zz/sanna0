@@ -8,9 +8,8 @@ from theano import tensor as T
 
 from ..optimizers import sgd
 from ..utils.data_processing import split_dataset
-from ..optimizers.model_optimizers import (
-        optimize_params_using_early_stopping
-        )
+from ..optimizers.model_optimizers import optimize_params as optimize
+
 
 class BaseSupervisedModel(object):
 
@@ -24,6 +23,7 @@ class BaseSupervisedModel(object):
 
         y = getattr(T, output_type)('y', dtype=output_dtype)
 
+        self.early_stopping = early_stopping
         self.arch = architecture
         self.X = self.arch.X
         self.Y = self.arch.Y
@@ -135,10 +135,6 @@ class BaseSupervisedModel(object):
                     )
         self.batch_size = batch_size
 
-    def deterministic_predict(self, X):
-        pass
-
-
 
     def set_params(self, values):
 
@@ -174,10 +170,11 @@ class BaseSupervisedModel(object):
 
         self.load_datasets(data)
 
-        tl, vl, bv = optimize_params_using_early_stopping(
+        tl, vl, bv = optimize(
                 self, improvement_threshold=improvement_threshold,
                 min_iter=min_iter, min_iter_increase=min_iter_increase,
-                n_epochs=n_epochs)
+                n_epochs=n_epochs,
+                early_stopping=self.early_stopping)
         self.training_loss += tl
         self.validation_loss += vl
         self.best_validation = bv

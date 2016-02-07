@@ -10,7 +10,8 @@ logger = logging.getLogger(__name__)
 def optimize_params_using_early_stopping(model,
                                          improvement_threshold=0.995,
                                          min_iter=2000,
-                                         min_iter_increase=1.5, n_epochs=200):
+                                         min_iter_increase=1.5, n_epochs=200,
+                                         early_stopping=True):
 
     start_time = timeit.default_timer()
 
@@ -21,8 +22,12 @@ def optimize_params_using_early_stopping(model,
             borrow=True
             ).shape[0] // model.batch_size
 
-    best_validation_loss = np.inf
-    training_losses, validation_losses = [], []
+    best_loss = np.inf
+    training_losses = []
+    if early_stopping:
+        validation_losses = []
+    else:
+        validation_losses = None
 
     done_looping = False
     epoch = 0
@@ -39,35 +44,61 @@ def optimize_params_using_early_stopping(model,
             training_loss.append(training_output[1])
 
         training_loss = np.mean(training_loss)
-        validation_loss = np.mean([model.validate(i)
+        if early_stopping:
+            validation_loss = np.mean([model.validate(i)
                                    for i in range(n_valid_batches)])
-
-        if validation_loss < best_validation_loss:
-            if validation_loss < best_validation_loss * improvement_threshold:
+            if validation_loss < best_loss * improvement_threshold:
                 min_iter = int(max(min_iter, iter_ * min_iter_increase))
-                best_validation_loss = validation_loss
+                best_loss = validation_loss
                 best_epoch = epoch
                 best_params = model.get_params()
                 logger.info(
-                    ("(epoch: %i, iter: %i): " % (epoch, iter_ + 1) +
-                    "minimum iteration %d >> validation_loss: %.5f" % (
-                        min_iter, best_validation_loss
-                    )
-                    )
-                )
-        logger.debug(
-            ('[epoch: %i, iter: %i] training_loss: %.5f ' % (
-                epoch, iter_ + 1, training_loss
-                ) +
-            'validation loss: %.5f (best: %.5f)' %
-            (validation_loss, best_validation_loss)
-            )
-        )
-        training_losses.append(training_loss)
-        validation_losses.append(validation_loss)
+                        ("(epoch: %i, iter: %i): " % (epoch, iter_ + 1) +
+                        "minimum iteration %d >> validation_loss: %.5f" % (
+                            min_iter, best_loss
+                            )
+                        )
+                        )
+            else:
+                logger.debug(
+                        ('[epoch: %i, iter: %i] training_loss: %.5f ' % (
+                            epoch, iter_ + 1, training_loss
+                            ) +
+                            'validation loss: %.5f (best: %.5f)' % (validation_loss, best_loss)
+                            )
+                        )
 
-    if validation_losses[-1] < best_validation_loss:
-        best_validation_loss = validation_losses[-1]
+            validation_losses.append(validation_loss)
+        else:
+            if training_loss < best_loss * improvement_threshold:
+                min_iter = int(max(min_iter, iter_ * min_iter_increase))
+                best_loss = training_loss
+                best_epoch = epoch
+                best_params = model.get_params()
+                logger.info(
+                        ("(epoch: %i, iter: %i): " % (epoch, iter_ + 1) +
+                        "minimum iteration %d >> training_loss: %.5f" % (
+                            min_iter, best_loss
+                            )
+                        )
+                        )
+            else:
+                logger.debug(
+                        ('[epoch: %i, iter: %i] training_loss: %.5f ' % (
+                            epoch, iter_ + 1, training_loss
+                            )
+                        )
+                        )
+
+            training_losses.append(training_loss)
+
+    if validation_losses is not None:
+        last_loss = validation_losses[-1]
+    else:
+        last_loss = training_losses[-1]
+
+    if last_loss < best_loss:
+        best_loss = last_loss
         best_epoch = epoch
     else:
         model.set_params(best_params)
@@ -77,7 +108,7 @@ def optimize_params_using_early_stopping(model,
     logger.info(
             (
                 'finished in %.4f min. best validation score: %.5f' % (
-                    (end_time - start_time) / 60., best_validation_loss
+                    (end_time - start_time) / 60., best_loss
                     ) +
                 'on epoch %i. (# epoch: %i, # iter: %i)' % (
                     best_epoch, epoch, iter_ + 1
@@ -85,4 +116,4 @@ def optimize_params_using_early_stopping(model,
                 )
             )
 
-    return training_losses, validation_losses, best_validation_loss
+    return training_losses, validation_losses, best_loss
