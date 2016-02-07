@@ -48,6 +48,7 @@ class Sankara(object):
                 model_class=self.cfg['class'],
                 numpy_rng=numpy_rng,
                 theano_rng=theano_rng,
+                early_stopping=self.cfg.get('early_stopping', True),
                 gd_params=self.cfg.get('gradient_descent', None)
                 )
 
