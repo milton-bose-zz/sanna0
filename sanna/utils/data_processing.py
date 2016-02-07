@@ -75,10 +75,13 @@ def split_dataset(data, training_fraction=0.80, shuffle=False,
                 p=None, numpy_rng=numpy_rng)
         data = (data[0][idx], data[1][idx])
 
-    data = dict(
-            train=(data[0][:size], data[1][:size]),
-            valid=(data[0][size:], data[1][size:])
-            )
+    if training_fraction == 1.0:
+        data = dict(train=data)
+    else:
+        data = dict(
+                train=(data[0][:size], data[1][:size]),
+                valid=(data[0][size:], data[1][size:])
+                )
 
     return data
 
