@@ -58,7 +58,6 @@ def MSE(pred, actual):
 def zero_one_loss(pred, actual):
     return pred != actual
 
-
 def tot_zero_one_loss(pred, actual):
     return np.sum(zero_one_loss(pred, actual))
 

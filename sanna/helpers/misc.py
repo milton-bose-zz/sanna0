@@ -17,7 +17,10 @@ def evaluation(data, model, eval_metrics=[], confusion=False,
     pred = model.predict(data[0])
     eval_ = []
     for m in eval_metrics:
-        k = m['name']
+        try:
+            k = m['name']
+        except:
+            k = m.__name__
         f = construct_eval_metrics(m)
         eval_.append((k, f(pred, data[1])))
     eval_ = OrderedDict(eval_)

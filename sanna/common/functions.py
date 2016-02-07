@@ -30,8 +30,10 @@ def tanh(X):
 
 
 def margin(Y, y):
-
-    return Y * y
+    try:
+        return Y * y
+    except:
+        return Y * y.reshape(-1, 1)
 
 
 def SE(Y, y):
