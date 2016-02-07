@@ -85,8 +85,6 @@ def split_dataset(data, training_fraction=0.80, shuffle=False,
 
     return data
 
-
-
 def load_data(datasets, borrow=True):
 
     train = datasets[0]
