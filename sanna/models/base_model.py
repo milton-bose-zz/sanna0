@@ -63,7 +63,7 @@ class BaseSupervisedModel(object):
             pred = self.Y
         else:
             pred = predict_func(self.Y)
-
+        self.arch.freeze_layers()
         self.predict = theano.function(
                         inputs=[self.X], outputs=pred
                         )
@@ -101,7 +101,7 @@ class BaseSupervisedModel(object):
                 self.data_source(var, 'train_', borrow=share_memory)
                 for var in [self.X, y]
                 ]
-
+        self.arch.unfreeze_layers()
         self.train = theano.function(
                 inputs=[index],
                 outputs=outputs,
@@ -134,6 +134,11 @@ class BaseSupervisedModel(object):
                         }
                     )
         self.batch_size = batch_size
+
+    def deterministic_predict(self, X):
+        pass
+
+
 
     def set_params(self, values):
 

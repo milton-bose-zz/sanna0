@@ -20,6 +20,23 @@ class NetworkArchitecture(object):
         self.X = X
         self.Y = None
 
+    def freeze_layers(self):
+
+        for lyr in self.layers:
+            try:
+                lyr.deterministic = True
+            except:
+                pass
+
+    def unfreeze_layers(self):
+
+        for lyr in self.layers:
+            try:
+                lyr.deterministic = False
+            except:
+                pass
+
+
     def set_params(self, values):
 
         for p, v in zip(self.params, values):
