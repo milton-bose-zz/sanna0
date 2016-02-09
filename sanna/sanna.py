@@ -111,6 +111,7 @@ def evaluate(ctx, eval_cfg, data=None):
     eval_msg += __spc + '+------------+\n'
     eval_msg += __spc + '| EVALUATION |\n'
     eval_msg += __spc + '+------------+\n'
+    eval_msg += __spc + 'number of samples: ' + str(len(data[0])) + '\n'
     eval_msg += '\n'
 
     if isinstance(eval_, list):

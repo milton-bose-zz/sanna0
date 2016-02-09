@@ -15,7 +15,8 @@ logger = logging.getLogger(__name__)
 def compile_model(arch_descr, data, cost_func,
         confidence_func=None, loss_func=None, predict_func=None,
         scoring_func=None, model_class='BaseSupervisedModel',
-        numpy_rng=None, theano_rng=None, gd_params=None):
+        numpy_rng=None, theano_rng=None, early_stopping=True,
+        gd_params=None):
 
     numpy_rng = numpy_rng_instance(numpy_rng)
     theano_rng = theano_rng_instance(theano_rng)
@@ -43,7 +44,8 @@ def compile_model(arch_descr, data, cost_func,
         scoring_func=scoring_func,
         confidence_func=confidence_func,
         output_type=output_type,
-        output_dtype=output_dtype
+        output_dtype=output_dtype,
+        early_stopping=early_stopping
         )
     gd_params = {} if gd_params is None else gd_params
     model_params.update(gd_params)

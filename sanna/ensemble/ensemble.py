@@ -16,7 +16,12 @@ class Ensemble(object):
     def __init__(self, data, training_fraction=0.8,
             numpy_rng=None, theano_rng=None):
 
-        self._keys = ['train', 'valid']
+        if training_fraction == 1.0:
+            self._keys = ['train']
+            early_stopping = False
+        else:
+            self._keys = ['train', 'valid']
+            early_stopping = True
 
         self.numpy_rng = numpy_rng_instance(numpy_rng)
         self.theano_rng = theano_rng_instance(theano_rng)
@@ -24,10 +29,13 @@ class Ensemble(object):
         self.data = split_dataset(data, training_fraction=training_fraction,
                 numpy_rng=self.numpy_rng)
         log_distributions(self.data['train'][1], type_='training data')
-        log_distributions(self.data['valid'][1], type_='validation data')
+        try:
+            log_distributions(self.data['valid'][1], type_='validation data')
+        except:
+            pass
 
-        self._weights = {'train': None, 'valid': None}
-        self.kwargs = None
+        self._weights = {k:None for k in self._keys}
+        self.kwargs = {'early_stopping':early_stopping}
 
         self.models = []
 
@@ -56,7 +64,10 @@ class Ensemble(object):
         data = self.bootstrapped_data()
 
         log_distributions(data['train'][1], type_='training sample')
-        log_distributions(data['valid'][1], type_='validation sample')
+        try:
+            log_distributions(data['valid'][1], type_='validation sample')
+        except:
+            pass
 
         model = self.__spawn_a_model()
         model.optimize_params(
@@ -68,7 +79,7 @@ class Ensemble(object):
                 )
         return model
 
-    def confidence(self, X, key='valid'):
+    def confidence(self, X, key='train'):
 
         Y = np.zeros((len(X), 1))
         for m in self.models:
@@ -77,7 +88,7 @@ class Ensemble(object):
         Y = Y / Y.sum(axis=1, keepdims=True)
         return Y
 
-    def predict(self, X, key='valid'):
+    def predict(self, X, key='train'):
 
         Y = self.confidence(X, key)
         return Y.argmax(axis=1)

@@ -7,27 +7,22 @@ import numpy as np
 logger = logging.getLogger(__name__)
 
 
-def optimize_params_using_early_stopping(model,
-                                         improvement_threshold=0.995,
-                                         min_iter=2000,
-                                         min_iter_increase=1.5, n_epochs=200,
-                                         early_stopping=True):
+def optimize_params(model, improvement_threshold=0.995,
+        min_iter=2000, min_iter_increase=1.5, n_epochs=200,
+        early_stopping=True):
 
     start_time = timeit.default_timer()
 
     n_train_batches = model.train_X.get_value(
             borrow=True
             ).shape[0] // model.batch_size
-    n_valid_batches = model.valid_X.get_value(
+    if early_stopping:
+        n_valid_batches = model.valid_X.get_value(
             borrow=True
             ).shape[0] // model.batch_size
 
     best_loss = np.inf
-    training_losses = []
-    if early_stopping:
-        validation_losses = []
-    else:
-        validation_losses = None
+    training_losses, validation_losses = [], []
 
     done_looping = False
     epoch = 0
@@ -59,6 +54,7 @@ def optimize_params_using_early_stopping(model,
                             )
                         )
                         )
+                done_looping = False
             else:
                 logger.debug(
                         ('[epoch: %i, iter: %i] training_loss: %.5f ' % (
@@ -82,6 +78,7 @@ def optimize_params_using_early_stopping(model,
                             )
                         )
                         )
+                done_looping = False
             else:
                 logger.debug(
                         ('[epoch: %i, iter: %i] training_loss: %.5f ' % (
@@ -92,7 +89,7 @@ def optimize_params_using_early_stopping(model,
 
             training_losses.append(training_loss)
 
-    if validation_losses is not None:
+    if early_stopping:
         last_loss = validation_losses[-1]
     else:
         last_loss = training_losses[-1]

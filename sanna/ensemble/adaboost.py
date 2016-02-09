@@ -92,7 +92,7 @@ class AdaBoostM2(Ensemble):
         logger.info('done optimizing all of the models')
         return self
 
-    def confidence(self, X, key='valid'):
+    def confidence(self, X, key='train'):
         Y = np.zeros((len(X), 1))
         for m, nlb in zip(self.models, self.neg_log_beta[key]):
             Y = Y + m.confidence(X) * nlb

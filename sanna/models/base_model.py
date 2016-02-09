@@ -187,10 +187,11 @@ class BaseSupervisedModel(object):
         self.train_y.set_value(
                 np.array(0, dtype=self.train_y.dtype, ndmin=self.train_y.ndim)
                 )
-        self.valid_X.set_value(
+        if self.early_stopping:
+            self.valid_X.set_value(
                 np.array(0, dtype=self.valid_X.dtype, ndmin=self.valid_X.ndim)
                 )
-        self.valid_y.set_value(
+            self.valid_y.set_value(
                 np.array(0, dtype=self.valid_y.dtype, ndmin=self.valid_y.ndim)
                 )
         state = dict(self.__dict__)
@@ -213,6 +214,7 @@ class BaseSupervisedModel(object):
 
         self.train_X.set_value(data['train'][0])
         self.train_y.set_value(data['train'][1])
-        self.valid_X.set_value(data['valid'][0])
-        self.valid_y.set_value(data['valid'][1])
+        if self.early_stopping:
+            self.valid_X.set_value(data['valid'][0])
+            self.valid_y.set_value(data['valid'][1])
 
