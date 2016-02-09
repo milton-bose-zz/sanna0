@@ -18,7 +18,8 @@ requirements = [
         'theano>=0.7.0',
         'numpy>=1.10.1',
         'scikit-learn>=0.17',
-        'pandas>=0.17.1'
+        'pandas>=0.17.1',
+        'seaborn'
     # TODO: put package requirements here
 ]
 
