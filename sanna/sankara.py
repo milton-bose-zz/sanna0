@@ -129,9 +129,6 @@ class Sankara(object):
 
         return eval_
 
-
-
-
     def predict(self, X, logging_stream=None, **kwargs):
 
         return self.model.predict(X)
