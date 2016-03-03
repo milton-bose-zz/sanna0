@@ -4,12 +4,7 @@
 language: python
 
 env:
-  - TOXENV=py35
   - TOXENV=py34
-  - TOXENV=py33
-  - TOXENV=py27
-  - TOXENV=py26
-  - TOXENV=pypy
 
 # command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
 install: pip install -U tox
@@ -22,10 +17,10 @@ script: tox
 deploy:
   provider: pypi
   distributions: sdist bdist_wheel
-  user: milton.bose
+  user: milton-bose
   password:
     secure: PLEASE_REPLACE_ME
   on:
     tags: true
     repo: milton-bose/sanna
-    condition: $TOXENV == py27
+    condition: $TOXENV == py34
