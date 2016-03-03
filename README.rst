@@ -21,7 +21,7 @@ Simple Artificial Neural Network Architectures
 Features
 --------
 
-* TODO
+* Multilayer Perceptron
 
 Credits
 ---------
